@@ -5,6 +5,7 @@ from datetime import datetime
 import jinja2
 import yaml
 import re
+from pprint import pprint
 
 from wok import util
 from wok import renderers
@@ -154,7 +155,35 @@ class Page(object):
         else:
             templ_vars.update({'page': self.meta})
 
-        self.html = template.render(templ_vars)
+        pagination = []
+        cur_page = 0
+        if 'paginate' in self.meta:
+            # For now assume that it is page.subpages
+
+            for chunk in util.chunk(templ_vars['page']['subpages'],
+                    self.meta['paginatecount']):
+
+                pprint([p['title'] for p in chunk])
+
+                pagination.append({
+                    'cur_page': cur_page+1,
+                    'page_items': chunk,
+                    'num_pages': -1,
+                })
+                cur_page += 1
+        else:
+            pagination = [{}]
+            num_pages = 1
+
+        print(self.meta['title'])
+
+        for page in pagination:
+            page['num_pages'] = cur_page
+
+            page_templ_vars = templ_vars.copy();
+            page_templ_vars['pagination'] = page
+
+            self.html = template.render(page_templ_vars)
 
     def write(self):
         """Write the page to an html file on disk."""
@@ -178,7 +207,7 @@ class Page(object):
         f.close()
 
     def __repr__(self):
-        return "&ltwok.page.Page '{0}'&gt".format(self.meta['slug'])
+        return "<wok.page.Page '{0}'>".format(self.meta['slug'])
 
 
 class Author(object):

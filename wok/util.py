@@ -4,6 +4,7 @@ import textwrap
 import re
 from unicodedata import normalize
 
+
 class Out(object):
 
     def __init__(self):
@@ -32,7 +33,9 @@ class Out(object):
             message = textwrap.fill(message, w)
         print(message)
 
+
 out = Out()
+
 
 # From http://flask.pocoo.org/snippets/5/
 _punct_re = re.compile(r'[\t !"#$%&\'()*\-/<=>?@\[\\\]^_`{|},.]+')
@@ -48,3 +51,9 @@ def slugify(text, delim=u'-'):
             result.append(word)
     return unicode(delim.join(result))
 
+
+
+def chunk(li, n):
+    """Yield succesive n-size chunks from l."""
+    for i in xrange(0, len(li), n):
+        yield li[i:i+n]
