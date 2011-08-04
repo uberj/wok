@@ -18,7 +18,7 @@ class Engine(object):
         'output_dir'  : 'output',
         'media_dir'   : 'media',
         'site_title'  : 'Some random Wok site',
-        'url_pattern' : '/{category}/{slug}.html',
+        'url_pattern' : '/{category}/{slug}{page}.html',
     }
 
     def __init__(self, output_lvl = 1):
@@ -150,21 +150,20 @@ class Engine(object):
         for tag in tag_set:
             tag_dict[tag] = [p.meta for p in self.all_pages if tag in p.meta['tags']]
 
-        templ_vars = {
-            'site': {
-                'title': self.options.get('site_title', 'Untitled'),
-                'datetime': datetime.now(),
-                'tags': tag_dict,
-                'pages': self.all_pages,
-                'categories': self.categories,
-            },
+        site_vars = {
+            'title': self.options.get('site_title', 'Untitled'),
+            'datetime': datetime.now(),
+            'tags': tag_dict,
+            'pages': self.all_pages,
+            'categories': self.categories,
         }
         if 'author' in self.options:
-            templ_vars['site']['author'] = self.options['author']
+            site_vars['author'] = self.options['author']
+
 
         for p in self.all_pages:
             if p.meta['published']:
-                p.render(templ_vars)
+                p.render({'site': site_vars.copy()})
                 p.write()
 
 if __name__ == '__main__':

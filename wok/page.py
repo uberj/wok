@@ -67,8 +67,8 @@ class Page(object):
         `page.published` - will exist.
         `page.datetime` - will be a datetime.
         `page.tags` - will be a list.
-        `page.url` - will be the url of the page, relative to the web root.
-        `page.subpages` - will be a list containing every sub page of this page
+        `page.url` - will be the url of the page, relative to the wb root.
+        `page.subpages` - will be a list containing every sub page of this page.
         """
 
         if self.meta is None:
@@ -133,6 +133,7 @@ class Page(object):
             parts = {
                 'slug' : self.meta['slug'],
                 'category' : '/'.join(self.meta['category']),
+                'page': '',
             }
             self.meta['url'] = self.options['url_pattern'].format(**parts);
 
@@ -153,7 +154,7 @@ class Page(object):
             util.out.debug('Found defaulted page data.')
             templ_vars['page'].update(self.meta)
         else:
-            templ_vars.update({'page': self.meta})
+            templ_vars['page'] = self.meta
 
         pagination = []
         cur_page = 0
@@ -163,48 +164,54 @@ class Page(object):
             for chunk in util.chunk(templ_vars['page']['subpages'],
                     self.meta['paginatecount']):
 
-                pprint([p['title'] for p in chunk])
-
                 pagination.append({
                     'cur_page': cur_page+1,
                     'page_items': chunk,
-                    'num_pages': -1,
                 })
                 cur_page += 1
         else:
-            pagination = [{}]
+            pagination = [{'cur_page': '', 'num_pages': '', 'page_items': []}]
             num_pages = 1
 
-        print(self.meta['title'])
+        util.out.debug(self.meta['title'])
 
+        self.html = {}
         for page in pagination:
             page['num_pages'] = cur_page
 
-            page_templ_vars = templ_vars.copy();
-            page_templ_vars['pagination'] = page
+            vars = templ_vars.copy();
+            vars['pagination'] = page
 
-            self.html = template.render(page_templ_vars)
+            parts = {
+                'slug' : self.meta['slug'],
+                'category' : '/'.join(self.meta['category']),
+                'page': page['cur_page'] if page['cur_page'] > 1 else '',
+            }
+            page_url = self.options['url_pattern'].format(**parts)
+
+            self.html[page_url] = template.render(vars)
 
     def write(self):
         """Write the page to an html file on disk."""
 
-        # Use what we are passed, or the default given, or the current dir
-        path = self.options.get('output_dir', '.')
-        path += self.meta['url']
+        for url, page in self.html.items():
+            # Use what we are passed, or the default given, or the current dir
+            path = self.options.get('output_dir', '.')
+            path += url
 
-        try:
-            os.makedirs(os.path.dirname(path))
-        except OSError as e:
-            util.out.debug('makedirs failed for {0}'.format(
-                os.path.basename(path)))
-            # Probably that the dir already exists, so thats ok.
-            # TODO: double check this. Permission errors are something to worry
-            # about
-        util.out.info('writing to {0}'.format(path))
+            try:
+                os.makedirs(os.path.dirname(path))
+            except OSError as e:
+                util.out.debug('makedirs failed for {0}'.format(
+                    os.path.basename(path)))
+                # Probably that the dir already exists, so thats ok.
+                # TODO: double check this. Permission errors are something to worry
+                # about
+            util.out.info('writing to {0}'.format(path))
 
-        f = open(path, 'w')
-        f.write(self.html)
-        f.close()
+            f = open(path, 'w')
+            f.write(page)
+            f.close()
 
     def __repr__(self):
         return "<wok.page.Page '{0}'>".format(self.meta['slug'])
