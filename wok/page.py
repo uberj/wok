@@ -173,12 +173,12 @@ class Page(object):
             pagination = [{'cur_page': '', 'num_pages': '', 'page_items': []}]
             num_pages = 1
 
+
         util.out.debug(self.meta['title'])
 
         self.html = {}
         for page in pagination:
             page['num_pages'] = cur_page
-
             vars = templ_vars.copy();
             vars['pagination'] = page
 
@@ -188,6 +188,31 @@ class Page(object):
                 'page': page['cur_page'] if page['cur_page'] > 1 else '',
             }
             page_url = self.options['url_pattern'].format(**parts)
+            page_url = re.sub(r'//+', '/', page_url)
+            util.out.debug('parts: ' + repr(parts) + ' url: ' + page_url)
+
+            if parts['page'] != '':
+                prev_parts = parts.copy()
+                if prev_parts['page'] == 2:
+                    prev_parts['page'] = ''
+                else:
+                    prev_parts['page'] -= 1
+
+                page['prev_url'] = self.options['url_pattern'].format(**prev_parts)
+                page['prev_url'] = re.sub(r'//+', '/', page['prev_url'])
+
+                util.out.debug('prev_parts: ' + repr(prev_parts) + ' prev: ' + page['prev_url'])
+
+            if parts['page'] == '' or parts['page'] < page['num_pages']:
+                next_parts = parts.copy()
+                if next_parts['page'] == '':
+                    next_parts['page'] = 2
+                else:
+                    next_parts['page'] += 1
+                page['next_url'] = self.options['url_pattern'].format(**next_parts)
+                page['next_url'] = re.sub(r'//+', '/', page['next_url'])
+                util.out.debug('next_parts: ' + repr(next_parts) + ' next: ' + page['next_url'])
+
 
             self.html[page_url] = template.render(vars)
 
