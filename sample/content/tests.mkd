@@ -1,6 +1,8 @@
 title: Tests Main
 slug: tests
 type: index
-url: /index.html
+url: /index{page}.html
+paginate: page.subpages
+paginatecount: 2
 ---
 These are the tests

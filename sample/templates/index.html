@@ -6,7 +6,16 @@
 
 <hr>
 
-{% for subpage in page.subpages %}
+<span>
+    {% if pagination.prev_url %}
+        <a href="{{pagination.prev_url}}">Previous Page</a>
+    {% endif %}
+    Page {{ pagination.cur_page }} of {{ pagination.num_pages }}
+    {% if pagination.next_url %}
+        <a href="{{pagination.next_url}}">Next Page</a>
+    {% endif %}
+</span>
+{% for subpage in pagination.page_items %}
     <a href="{{subpage.url}}"><h2>{{subpage.title}}</h2></a>
     {{subpage.content}}
 {% endfor %}
