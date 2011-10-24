@@ -366,5 +366,5 @@ class Author(object):
         return "{0} <{1}>".format(self.name, self.email)
 
     def __repr__(self):
-        return '<wok.page.Author "{0} <{1}>">'.format(self.name, self.email)
+        return "{0} <{1}>".format(self.name, self.email)
 
